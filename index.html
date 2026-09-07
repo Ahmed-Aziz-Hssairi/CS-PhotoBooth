@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="CS PHOTOBOOTH — Official IEEE ENIS Computer Society Interactive Photobooth with CS-BOT 3D Mascot." />
+  <meta name="theme-color" content="#FF7A00" />
+
+  <title>CS PHOTOBOOTH — IEEE ENIS CS SBC</title>
+
+  <!-- Preconnect for fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <!-- Particle background canvas -->
+  <canvas id="particleCanvas" aria-hidden="true"></canvas>
+
+  <!-- ── 3D Robot Mascot Companion Layer ── -->
+  <div id="robotContainer" aria-label="Interactive 3D CS-BOT mascot" role="img"></div>
+
+  <!-- ── App Shell ── -->
+  <div class="app-shell">
+
+    <!-- ── Main Content ── -->
+    <main class="main-content" role="main">
+
+      <!-- Header with CS ENIS Logo & Live Counter -->
+      <header class="app-header" role="banner">
+        <div class="header-brand">
+          <div class="header-logo-container">
+            <img src="assets/cs.png" alt="IEEE ENIS Computer Society Logo" class="header-ieee-logo" />
+          </div>
+          <div class="header-text-block">
+            <h1 class="header-title">CS PHOTOBOOTH <span class="header-badge-tag">LIVE</span></h1>
+            <span class="header-subtitle">IEEE ENIS Computer Society · Interactive Souvenir</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Chapter Status Badge -->
+          <div class="chapter-status-pill">
+            <span class="status-pulse-dot"></span>
+            <span>IEEE ENIS CS SBC</span>
+          </div>
+
+          <!-- Fullscreen Toggle Button -->
+          <button type="button" id="fullscreenBtn" class="fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
+            <!-- Expand icon (shown when NOT fullscreen) -->
+            <svg id="fsIconExpand" class="fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            <!-- Compress icon (shown when fullscreen) -->
+            <svg id="fsIconCompress" class="fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+              <polyline points="4 14 10 14 10 20"></polyline>
+              <polyline points="20 10 14 10 14 4"></polyline>
+              <line x1="10" y1="14" x2="3" y2="21"></line>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- ── Photobooth Main Stage ── -->
+      <div class="photobooth-stage" id="photoboothStage">
+
+        <!-- Top Title & Subtitle Banner -->
+        <div class="pb-hero-header">
+          <h2 class="pb-hero-title">Take a Photo with CS-BOT! 📸</h2>
+          <p class="pb-hero-desc">Strike a pose beside our 3D animated AI mascot and receive your souvenir photo
+            directly by email.</p>
+        </div>
+
+        <!-- ── Main Photobooth Card ── -->
+        <div class="pb-main-card">
+
+          <!-- Flash Overlay for Camera Shutter -->
+          <div class="pb-flash-overlay" id="pbFlashOverlay" aria-hidden="true"></div>
+
+          <!-- ── STEP 1: Live Camera View & Customization ── -->
+          <div class="pb-step pb-step-camera active">
+
+            <!-- Customization Bar: Poses & Capture Mode -->
+            <div class="pb-custom-bar">
+              <!-- Mascot Pose Selector -->
+              <div class="pb-custom-section">
+                <span class="pb-custom-label">🤖 CS-BOT Pose:</span>
+                <div class="pb-chips-group">
+                  <button type="button" class="pb-chip pb-pose-chip active" data-pose="wave" title="Wave Hello">👋
+                    Wave</button>
+                  <button type="button" class="pb-chip pb-pose-chip" data-pose="peace" title="Peace Sign">✌️
+                    Peace</button>
+                  <button type="button" class="pb-chip pb-pose-chip" data-pose="thinking" title="Thinking">🤔
+                    Think</button>
+                  <button type="button" class="pb-chip pb-pose-chip" data-pose="rockstar" title="Rockstar">🤘
+                    Rock</button>
+                </div>
+              </div>
+
+              <!-- Mode Selector (Single vs 4-Burst) -->
+              <div class="pb-custom-section">
+                <div class="pb-mode-toggle" role="group" aria-label="Capture Mode">
+                  <button type="button" class="pb-mode-btn active" data-mode="single" id="pbModeSingleBtn"
+                    title="Single Photo">📸 Single</button>
+                  <button type="button" class="pb-mode-btn" data-mode="burst" id="pbModeBurstBtn"
+                    title="4-Shot Photo Strip">🎞️ 4-Burst</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pb-viewfinder">
+              <video id="photoboothVideo" autoplay playsinline muted></video>
+
+              <!-- Real-Time Camera Framing Watermark & CS ENIS Logo Overlay -->
+              <div class="pb-live-header-bar">
+                <div class="pb-live-logo-badge">
+                  <img src="assets/cs.png" alt="IEEE ENIS CS Logo" />
+                </div>
+                <div class="pb-live-title-tag">
+                  <span>CS-BOT PHOTOBOOTH</span>
+                </div>
+              </div>
+
+              <!-- Live Robot Companion Guidance Guide -->
+              <div class="pb-robot-guide">
+                <div class="pb-guide-hint">🤖 CS-BOT poses beside you!</div>
+              </div>
+
+              <!-- 3-2-1 Countdown Overlay -->
+              <div class="pb-countdown-overlay" id="pbCountdownOverlay">
+                <span class="pb-countdown-num" id="pbCountdownNumber">3</span>
+                <span class="pb-countdown-sub" id="pbCountdownSub">Get Ready & Smile! 📸</span>
+              </div>
+
+              <!-- Cyber Corner Markers -->
+              <div class="pb-corner pb-corner-tl"></div>
+              <div class="pb-corner pb-corner-tr"></div>
+              <div class="pb-corner pb-corner-bl"></div>
+              <div class="pb-corner pb-corner-br"></div>
+            </div>
+
+            <!-- Camera Controls Bar -->
+            <div class="pb-controls-bar">
+              <button type="button" class="pb-ctrl-btn pb-switch-btn" id="pbSwitchCamBtn" title="Switch Camera">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path
+                    d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 2.21.896 4.21 2.344 5.656l1.414-1.414A5.98 5.98 0 0 1 6 10c0-3.314 2.686-6 6-6s6 2.686 6 6c0 1.657-.672 3.157-1.758 4.242l1.414 1.414A7.963 7.963 0 0 0 20 10z" />
+                  <path d="m19 14 3 3-3 3" />
+                </svg>
+                <span>Flip</span>
+              </button>
+
+              <!-- Main Shutter Capture Button -->
+              <button type="button" class="pb-shutter-main-btn" id="pbCaptureBtn" title="Take photo">
+                <div class="pb-shutter-outer">
+                  <div class="pb-shutter-inner">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                      </path>
+                      <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                  </div>
+                </div>
+                <span class="pb-shutter-label">📸 Take Photo (3s)</span>
+              </button>
+
+              <!-- Instant Snap Button -->
+              <button type="button" class="pb-ctrl-btn pb-instant-btn" id="pbSnapInstantBtn" title="Snap Instantly">
+                <span>⚡ Instant</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ── STEP 1.1: Camera Error View ── -->
+          <div class="pb-step pb-step-camera-error">
+            <div class="pb-error-card">
+              <div class="pb-error-icon">📷⚠️</div>
+              <h3 class="pb-error-title">Camera Access Required</h3>
+              <p class="pb-error-desc" id="pbCamErrorMsg">
+                Camera permission was denied or not found. Please enable camera access in your browser settings to take
+                your souvenir photo with CS-BOT.
+              </p>
+              <div class="pb-error-actions">
+                <button type="button" class="pb-btn pb-btn-primary" id="pbRetryCamBtn">
+                  <span>🔄 Try Again</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── STEP 2: Photo Preview ── -->
+          <div class="pb-step pb-step-preview">
+            <div class="pb-preview-container">
+              <img id="pbPreviewImg" alt="Captured souvenir photo with CS-BOT and CS ENIS Logo"
+                class="pb-preview-image" />
+            </div>
+
+            <div class="pb-preview-actions">
+              <button type="button" class="pb-btn pb-btn-secondary" id="pbRetakeBtn">
+                <span>🔄 Retake</span>
+              </button>
+              <button type="button" class="pb-btn pb-btn-primary" id="pbConfirmBtn">
+                <span>✅ Confirm Photo</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ── STEP 3: Delivery (Email) ── -->
+          <div class="pb-step pb-step-email">
+            <div class="pb-email-card">
+              <div class="pb-email-badge">📩 SOUVENIR DELIVERY</div>
+              <h3 class="pb-email-title">Where should we send your photo?</h3>
+              <p class="pb-email-subtitle">Enter your name and email to receive your souvenir photo directly in your
+                inbox.</p>
+
+              <!-- Email Form -->
+              <form id="pbEmailForm" class="pb-email-form" novalidate autocomplete="off">
+                <div class="pb-input-group">
+                  <span class="pb-input-icon">👤</span>
+                  <input type="text" id="pbNameInput" class="pb-text-input" placeholder="Your Name (e.g. Ahmed)"
+                    autocomplete="off" aria-label="Your Name" />
+                </div>
+
+                <div class="pb-input-group">
+                  <span class="pb-input-icon">✉️</span>
+                  <input type="email" id="pbEmailInput" class="pb-text-input" placeholder="name@domain.com" required
+                    autocomplete="off" aria-label="Email address" />
+                </div>
+
+                <!-- Inline validation error message -->
+                <div class="pb-email-error-msg" id="pbEmailError" role="alert"></div>
+
+                <div class="pb-form-buttons">
+                  <button type="button" class="pb-btn pb-btn-secondary" id="pbCancelBtn">
+                    <span>🔄 Retake</span>
+                  </button>
+                  <button type="submit" class="pb-btn pb-btn-primary pb-send-btn" id="pbSendPhotoBtn">
+                    <span>📩</span>
+                    <span>Send Photo</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- ── STEP 4: Success State ── -->
+          <div class="pb-step pb-step-success">
+            <div class="pb-success-card">
+              <div class="pb-success-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#00E676" stroke-width="3" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <h3 class="pb-success-title">📸 Your photo has been sent successfully!</h3>
+              <p class="pb-success-desc">
+                We sent your high-res souvenir to <strong id="pbSuccessEmailLabel">your email</strong>. Check your inbox
+                and spam folder.
+              </p>
+
+              <div class="pb-success-actions">
+                <button type="button" class="pb-btn pb-btn-secondary pb-download-btn"
+                  title="Download directly to device">
+                  <span>💾 Download Copy</span>
+                </button>
+                <button type="button" class="pb-btn pb-btn-primary pb-retake-new-btn" id="pbTakeAnotherBtn">
+                  <span>📸 Take Another Photo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end .pb-main-card -->
+
+      </div><!-- end .photobooth-stage -->
+
+    </main><!-- end main -->
+  </div><!-- end .app-shell -->
+
+  <!-- ── Three.js (3D Robot) ── -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- ── Scripts loaded in dependency order ── -->
+  <script src="js/robot.js"></script>
+  <script src="js/photobooth.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- ── Fullscreen Toggle ── -->
+  <script>
+    (function () {
+      const btn = document.getElementById('fullscreenBtn');
+      const iconExpand = document.getElementById('fsIconExpand');
+      const iconCompress = document.getElementById('fsIconCompress');
+
+      function updateIcons() {
+        const isFs = !!document.fullscreenElement;
+        iconExpand.style.display = isFs ? 'none' : 'block';
+        iconCompress.style.display = isFs ? 'block' : 'none';
+        btn.setAttribute('title', isFs ? 'Exit Fullscreen' : 'Enter Fullscreen');
+      }
+
+      btn.addEventListener('click', function () {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(function (err) {
+            console.warn('Fullscreen request failed:', err);
+          });
+        } else {
+          document.exitFullscreen();
+        }
+      });
+
+      document.addEventListener('fullscreenchange', updateIcons);
+    })();
+  </script>
+
+</body>
+
+</html>
